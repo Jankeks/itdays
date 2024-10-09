@@ -24,8 +24,8 @@
         window.grassImage = grassBase64
         window.stoneImage = stoneBase64
 
-        const LIVES_COUNT = 5;
-        const MAX_SECONDS = 30;
+        const LIVES_COUNT = 10;
+        const MAX_SECONDS = 300;
 
         // APP ===========================================>
 
@@ -50,18 +50,19 @@
                 return y_position;
             }
 
+            var level = 1;
             if (prize.finito)
                 level++;
             if (prize2.finito)
                 level++;
             if (prize3.finito)
                 level++;
-
+            
             var speedLevel = 270;
             if (level === 2) {
                 speedLevel = 350;
             } else if (level === 3) {
-                speedLevel = 700;
+                speedLevel = 400;
             }
 
             this.speed = (Math.floor((Math.random() + 1) * speedLevel));
@@ -169,8 +170,7 @@
         var timerSeconds = MAX_SECONDS;
         var masterCount = 0;
         var amateurCount = 0;
-        var beginnerCount = 0;
-        var level = 1;
+        var beginnerCount = 0;        
 
         generate = function() {
             for (var i = 0; i < 2; i++) {
@@ -260,7 +260,6 @@
                 lives = LIVES_COUNT
                 startTime = 0
                 timerSeconds = MAX_SECONDS
-                level = 1
                 
                 player = new Player()
                 prize = new Prize(1)

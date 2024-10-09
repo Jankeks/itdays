@@ -125,6 +125,7 @@
         var start = false;
         var  follow = false;
         var game_over = false;
+        var refreshCalled = false;
         var player = new Player();
         var prize = new Prize();
         var allEnemies = [];
@@ -175,13 +176,24 @@
             }
         }
         function refresh() {
+            if (refreshCalled)
+                return
+            else
+                refreshCalled = true
+
             setTimeout(() => {
-                var start = false;
-                var follow = false;
-                var game_over = false;
-
+                start = false
+                follow = false
+                game_over = false
+                refreshCalled = false
                 
+                player = new Player()
+                prize = new Prize()
+                allEnemies = []
 
+                console.log("REFRESH");
+
+                generate()
 
                 //location.reload()
             }, 2000);
@@ -369,8 +381,6 @@
             generate();
             lastTime = Date.now();
             main();
-
-            
         }
         function update(dt) {
             updateEntities(dt);

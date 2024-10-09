@@ -38,18 +38,33 @@
             hash();
             this.y = y_position;
             function hash() {
-            number = Math.floor(Math.random() * 101) * 4;
-            if (number < 100) {
-                y_position = 50;
-            } else if (number > 100 && number < 300) {
-                y_position = 140;
-            } else if (number > 200) {
-                y_position = 230;
+                number = Math.floor(Math.random() * 101) * 4;
+                if (number < 100) {
+                    y_position = 50;
+                } else if (number > 100 && number < 300) {
+                    y_position = 140;
+                } else if (number > 200) {
+                    y_position = 230;
+                }
+
+                return y_position;
             }
 
-            return y_position;
+            if (prize.finito)
+                level++;
+            if (prize2.finito)
+                level++;
+            if (prize3.finito)
+                level++;
+
+            var speedLevel = 270;
+            if (level === 2) {
+                speedLevel = 350;
+            } else if (level === 3) {
+                speedLevel = 700;
             }
-            this.speed = (Math.floor((Math.random() + 1) * 351));
+
+            this.speed = (Math.floor((Math.random() + 1) * speedLevel));
         };
         Enemy.prototype.update = function(dt) {
             this.x = this.x + this.speed * dt;
@@ -155,6 +170,7 @@
         var masterCount = 0;
         var amateurCount = 0;
         var beginnerCount = 0;
+        var level = 1;
 
         generate = function() {
             for (var i = 0; i < 2; i++) {
@@ -244,6 +260,7 @@
                 lives = LIVES_COUNT
                 startTime = 0
                 timerSeconds = MAX_SECONDS
+                level = 1
                 
                 player = new Player()
                 prize = new Prize(1)

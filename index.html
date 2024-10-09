@@ -59,7 +59,7 @@
         };
         var Player = function() {
             this.sprite = characterImage//`${relativePath}/images/char-boy.png`;
-            this.x = 900;
+            this.x = 1000;
             this.y = 400;
         };
 
@@ -71,16 +71,16 @@
         };
 
         Player.prototype.handleInput = function(keyCode, touchPad = false) {
-            if (keyCode == 'left' && this.x > 0) {
+            if (keyCode == 'left' && this.x > 0 && game_over === false && start === true) {
                 this.x = this.x - 100;
             }
-            else if (keyCode == 'up' && this.y > 30) {
+            else if (keyCode == 'up' && this.y > 30 && game_over === false && start === true) {
                 this.y = this.y - 83;
             }
-            else if (keyCode == 'right' && this.x < 556) {
+            else if (keyCode == 'right' && this.x < 556 && game_over === false && start === true) {
                 this.x = this.x + 100;
             }
-            else if (keyCode == 'down' && this.y < 355) {
+            else if (keyCode == 'down' && this.y < 355 && game_over === false && start === true) {
                 this.y = this.y + 83;
             }
             else if (keyCode == 'enter' && start === false) {
@@ -136,19 +136,6 @@
                     this.x = this.x + 30;
                     this.y = this.y +143;
                 }
-
-                if (trophy === 3) {
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "Middle";
-                    ctx.font = 'bold 50px Trebuchet MS, sans-serif';
-                    ctx.fillStyle = '#FFD700';
-                    ctx.fillText('You Win!', 353.5, 303);
-                    ctx.font = 'bold 50px Trebuchet MS, sans-serif';
-                    ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 3;
-                    ctx.strokeText('You Win!', 353.5, 303);
-                    game_over = true;
-                }
             }
         };
         var start = false;
@@ -159,9 +146,8 @@
         var prize2 = new Prize(2);
         var prize3 = new Prize(3);
         var allEnemies = [];
-        //jnx
         var lives = LIVES_COUNT;
-        var trophy = 0;
+
         generate = function() {
             for (var i = 0; i < 2; i++) {
                 e = new Enemy;
@@ -193,10 +179,6 @@
                 if (String(which_block(allEnemies[i].x, allEnemies[i].y)) === String(which_block(player.x, player.y))) {
                     lives--;                    
 
-                    if (lives === 0) {
-                        game_over = true;
-                    }
-
                     if (prize.follow === true) {
                         prize.follow = false;
                         prize.x = player.x;
@@ -217,7 +199,7 @@
 
                     allEnemies = [];
                     generate();
-                    player.x = 200;
+                    player.x = 300;
                     player.y = 400;
                 }
             }
@@ -252,7 +234,6 @@
                 game_over = false
                 refreshCalled = false
                 lives = LIVES_COUNT
-                trophy = 0
                 
                 player = new Player()
                 prize = new Prize(1)
@@ -286,7 +267,7 @@
             player.handleInput(allowedKeys[e.keyCode]);
         });
         
-        function title() {
+        function startupTitle() {
             ctx.textAlign = "center";
             ctx.textBaseline = "Middle";
             ctx.lineWidth = 2;
@@ -303,6 +284,30 @@
             ctx.fillText('Press ENTER to start', 707/2, 333.3);
             ctx.font = 'bold 50px Trebuchet MS, sans-serif';
             ctx.strokeText('Press ENTER to start', 707/2, 333.3);
+        }
+
+        function winTitle() {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "Middle";
+            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('You Win!', 353.5, 303);
+            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeText('You Win!', 353.5, 303);
+        }
+
+        function looserTitle() {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "Middle";
+            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('You loose!', 353.5, 303);
+            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeText('You loose!', 353.5, 303);
         }
 
         // RESOURCES ===========================================>
@@ -499,11 +504,20 @@
                 }
             }
             renderEntities();
-            if (start === false) {
-                title();
+            if (start === true) {
+                if (lives === 0) {
+                    looserTitle();
+                    game_over = true;
+                }
+                else if (prize.finito && prize2.finito && prize3.finito) {
+                    winTitle();
+                    game_over = true;
+                }
+            } else {
+                startupTitle();
             }
         }
-        function renderEntities() {
+        function renderEntities() {            
             allEnemies.forEach(function(enemy) {
                 enemy.render();
             });
@@ -512,24 +526,17 @@
                 prize2.render();
                 prize3.render();                
                 player.render();
-
-                // drawButton(upButton);
-                // drawButton(downButton);
-                // drawButton(leftButton);
-                // drawButton(rightButton);
-            }
-            //  else {
-            //     drawButton(startButton);
-            // }
-
-            drawButton(upButton);
-            drawButton(downButton);
-            drawButton(leftButton);
-            drawButton(rightButton);
-            drawButton(startButton);
-            drawButton(fullscreenButton);
-            if (start === true)
                 drawLivesText();
+                drawButton(upButton);
+                drawButton(downButton);
+                drawButton(leftButton);
+                drawButton(rightButton);
+            }
+            else {
+                drawButton(startButton);
+            }
+
+            drawButton(fullscreenButton);               
         }
 
         Resources.load([

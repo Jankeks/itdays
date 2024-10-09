@@ -129,6 +129,8 @@
         var player = new Player();
         var prize = new Prize();
         var allEnemies = [];
+        //jnx
+        var lives = 3;
         generate = function() {
             for (var i = 0; i < 2; i++) {
                 e = new Enemy;
@@ -158,6 +160,13 @@
         function checkCollisions() {
             for (var i = 0; i < allEnemies.length; i++) {
                 if (String(which_block(allEnemies[i].x, allEnemies[i].y)) === String(which_block(player.x, player.y))) {
+                    lives--;                    
+                    console.log(lives)
+
+                    if (lives === 0) {
+                        game_over = true;
+                    }
+
                     if (follow === true) {
                         follow = false;
                         prize.x = player.x;
@@ -186,6 +195,7 @@
                 follow = false
                 game_over = false
                 refreshCalled = false
+                lives = 3
                 
                 player = new Player()
                 prize = new Prize()
@@ -330,6 +340,11 @@
             ctx.fillRect(button.x, button.y, button.width, button.height);
         }
 
+        function drawLivesText() {
+            ctx.font = "50px Arial";
+            ctx.fillText(lives, 30, 110);
+        }
+
         // Detect button press
         function isButtonPressed(button, touchX, touchY) {
             return touchX >= button.x && touchX <= button.x + button.width &&
@@ -448,6 +463,8 @@
             drawButton(rightButton);
             drawButton(startButton);
             drawButton(fullscreenButton);
+            if (start === true)
+                drawLivesText();
         }
 
         Resources.load([

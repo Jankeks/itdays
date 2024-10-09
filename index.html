@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>JavaScript & HTML5 Canvas Game</title>
+    <title>S-TEC Latvia</title>
     <style>
         canvas {
             margin-top: -3rem;
@@ -92,10 +92,20 @@
             prize.x = this.x;
             prize.y = this.y;
         };
-        var Prize = function () {
-            this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
-            this.x = 530;
-            this.y = 30;
+        var Prize = function (gemType) {
+            if (gemType === 1) {
+                this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
+                this.x = 330;
+                this.y = 30;
+            } else if (gemType === 2) {
+                this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
+                this.x = 130;
+                this.y = 30;
+            } else {
+                this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
+                this.x = 530;
+                this.y = 30;
+            }
         };
         Prize.prototype.update = function() {
             if (follow === true) {
@@ -123,11 +133,13 @@
             }
         };
         var start = false;
-        var  follow = false;
+        var follow = false;
         var game_over = false;
         var refreshCalled = false;
         var player = new Player();
         var prize = new Prize();
+        var prize2 = new Prize(1);
+        var prize3 = new Prize(2);
         var allEnemies = [];
         //jnx
         var lives = 3;
@@ -199,6 +211,8 @@
                 
                 player = new Player()
                 prize = new Prize()
+                prize2 = new Prize(1);
+                prize3 = new Prize(2);
                 allEnemies = []
 
                 console.log("REFRESH");
@@ -406,9 +420,13 @@
             }    
             checkCollisions();
             prize.render();
+            prize2.render();
+            prize3.render();
         }
         function updateEntities(dt) {       
             prize.update();
+            prize2.update();
+            prize3.update();
             allEnemies.forEach(function(enemy) {
                 enemy.update(dt);
             });
@@ -446,6 +464,8 @@
             });
             if (start === true) {
                 prize.render();
+                prize2.render();
+                prize3.render();                
                 player.render();
 
                 // drawButton(upButton);

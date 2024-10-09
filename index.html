@@ -23,6 +23,8 @@
         window.grassImage = grassBase64
         window.stoneImage = stoneBase64
 
+        const LIVES_COUNT = 5;
+
         // APP ===========================================>
 
         var Enemy = function() {
@@ -88,16 +90,28 @@
                 document.querySelector("body").requestFullscreen()
             }
         };
-        Player.prototype.follow = function() {
-            prize.x = this.x;
-            prize.y = this.y;
+        Player.prototype.follow = function(gemType) {
+            if (gemType === 2) {
+                prize2.x = this.x;
+                prize2.y = this.y;
+            } else if (gemType === 3) {
+                prize3.x = this.x;
+                prize3.y = this.y;
+            } else {
+                prize.x = this.x;
+                prize.y = this.y;
+            }
         };
         var Prize = function (gemType) {
-            if (gemType === 1) {
+            this.gemType = gemType;
+            this.follow = false;
+            this.finito = false;
+            
+            if (gemType === 2) {
                 this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
                 this.x = 330;
                 this.y = 30;
-            } else if (gemType === 2) {
+            } else if (gemType === 3) {
                 this.sprite = gemImage//`${relativePath}/images/Gem Blue.png`;
                 this.x = 130;
                 this.y = 30;
@@ -108,41 +122,46 @@
             }
         };
         Prize.prototype.update = function() {
-            if (follow === true) {
-                player.follow();
+            if (this.follow === true) {
+                player.follow(this.gemType);
             }
         };
         Prize.prototype.render = function() {
             ctx.drawImage(Resources.get(this.sprite), this.x, this.y, 50.5, 85.5);
-            if (this.y > 300) {
-                follow = false;
+            if (this.y > 300 && !this.finito) {
+                this.follow = false;
+                this.finito = true;
+
                 if (game_over === false) {
                     this.x = this.x + 30;
                     this.y = this.y +143;
                 }
-                ctx.textAlign = "center";
-                ctx.textBaseline = "Middle";
-                ctx.font = 'bold 50px Trebuchet MS, sans-serif';
-                ctx.fillStyle = '#FFD700';
-                ctx.fillText('You Win!', 353.5, 303);
-                ctx.font = 'bold 50px Trebuchet MS, sans-serif';
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 3;
-                ctx.strokeText('You Win!', 353.5, 303);
-                game_over = true;
+
+                if (trophy === 3) {
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "Middle";
+                    ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fillText('You Win!', 353.5, 303);
+                    ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3;
+                    ctx.strokeText('You Win!', 353.5, 303);
+                    game_over = true;
+                }
             }
         };
         var start = false;
-        var follow = false;
         var game_over = false;
         var refreshCalled = false;
         var player = new Player();
-        var prize = new Prize();
-        var prize2 = new Prize(1);
-        var prize3 = new Prize(2);
+        var prize = new Prize(1);
+        var prize2 = new Prize(2);
+        var prize3 = new Prize(3);
         var allEnemies = [];
         //jnx
-        var lives = 3;
+        var lives = LIVES_COUNT;
+        var trophy = 0;
         generate = function() {
             for (var i = 0; i < 2; i++) {
                 e = new Enemy;
@@ -173,26 +192,52 @@
             for (var i = 0; i < allEnemies.length; i++) {
                 if (String(which_block(allEnemies[i].x, allEnemies[i].y)) === String(which_block(player.x, player.y))) {
                     lives--;                    
-                    console.log(lives)
 
                     if (lives === 0) {
                         game_over = true;
                     }
 
-                    if (follow === true) {
-                        follow = false;
+                    if (prize.follow === true) {
+                        prize.follow = false;
                         prize.x = player.x;
                         prize.y = player.y;
                     }
+
+                    if (prize2.follow === true) {
+                        prize2.follow = false;
+                        prize2.x = player.x;
+                        prize2.y = player.y;
+                    }
+
+                    if (prize3.follow === true) {
+                        prize3.follow = false;
+                        prize3.x = player.x;
+                        prize3.y = player.y;
+                    }
+
                     allEnemies = [];
                     generate();
                     player.x = 200;
                     player.y = 400;
                 }
             }
-            if (String(which_block(player.x, player.y)) == String(which_block(prize.x, prize.y - 30))) { 
-                if (game_over === false) {
-                    follow = true;
+            if (String(which_block(player.x, player.y)) == String(which_block(prize.x, prize.y - 30)) && !prize.follow && !prize.finito) { 
+                if (!prize2.follow && !prize3.follow) {
+                    if (game_over === false) {
+                        prize.follow = true;
+                    }
+                }
+            } else if (String(which_block(player.x, player.y)) == String(which_block(prize2.x, prize2.y - 30)) && !prize2.follow && !prize2.finito) { 
+                if (!prize.follow && !prize3.follow) {
+                    if (game_over === false) {
+                        prize2.follow = true;
+                    }
+                }
+            } else if (String(which_block(player.x, player.y)) == String(which_block(prize3.x, prize3.y - 30)) && !prize3.follow && !prize3.finito) { 
+                if (!prize.follow && !prize2.follow) {
+                    if (game_over === false) {
+                        prize3.follow = true;
+                    }
                 }
             }
         }
@@ -204,15 +249,15 @@
 
             setTimeout(() => {
                 start = false
-                follow = false
                 game_over = false
                 refreshCalled = false
-                lives = 3
+                lives = LIVES_COUNT
+                trophy = 0
                 
                 player = new Player()
-                prize = new Prize()
-                prize2 = new Prize(1);
-                prize3 = new Prize(2);
+                prize = new Prize(1)
+                prize2 = new Prize(2);
+                prize3 = new Prize(3);
                 allEnemies = []
 
                 console.log("REFRESH");

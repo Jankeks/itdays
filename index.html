@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>S-TEC Latvia</title>
+    <meta charset="UTF-8">
     <style>
         canvas {
             margin-top: -3rem;
@@ -26,6 +27,38 @@
 
         const LIVES_COUNT = 5;
         const MAX_SECONDS = 30;
+        const REFRESH_TIME_SECONDS = 4
+
+        const PIN = "0000"
+        const PIN_ARRAY = [PIN, "4321", "1111", "2222"]
+        const PIN_BTN_COLORS = ["red", "green", "blue", "grey"]
+        const PIN_BTN_FIRST_POS_X = 210
+        const PIN_BTN_SCALE = 60
+
+        function shuffle(array) {
+            let currentIndex = array.length;
+
+            while (currentIndex != 0) {
+                let randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+            }
+        }
+
+        function shufflePassword(force = false) {
+            if (pinRandomized && !force)
+                return
+
+            shuffle(PIN_ARRAY)
+            shuffle(PIN_BTN_COLORS)
+
+            if (JSON.stringify(PIN_ARRAY) != JSON.stringify(lastPinSequence)) {
+                pinRandomized = true
+                lastPinSequence = Array(...PIN_ARRAY)
+            }
+        }
 
         // APP ===========================================>
 
@@ -91,24 +124,23 @@
         Player.prototype.handleInput = function(keyCode, touchPad = false) {
             if (keyCode == 'left' && this.x > 0 && game_over === false && start === true) {
                 this.x = this.x - 100;
-            }
-            else if (keyCode == 'up' && this.y > 30 && game_over === false && start === true) {
+            } else if (keyCode == 'up' && this.y > 30 && game_over === false && start === true) {
                 this.y = this.y - 83;
-            }
-            else if (keyCode == 'right' && this.x < 556 && game_over === false && start === true) {
+            } else if (keyCode == 'right' && this.x < 556 && game_over === false && start === true) {
                 this.x = this.x + 100;
-            }
-            else if (keyCode == 'down' && this.y < 355 && game_over === false && start === true) {
+            } else if (keyCode == 'down' && this.y < 355 && game_over === false && start === true) {
                 this.y = this.y + 83;
-            }
-            else if (keyCode == 'enter' && start === false) {
+            } else if (keyCode == 'enter' && start === false) {
                 this.x = this.x - 700;
                 start = true;
                 startTime = Date.now();
             } else if (keyCode == 'fullscreen') {
                 document.querySelector("body").requestFullscreen()
+            } else if (PIN_ARRAY.includes(keyCode)) {
+                checkPassword(keyCode)
             }
         };
+        
         Player.prototype.follow = function(gemType) {
             if (gemType === 2) {
                 prize2.x = this.x;
@@ -157,6 +189,7 @@
                 }
             }
         };
+
         var start = false;
         var game_over = false;
         var refreshCalled = false;
@@ -170,7 +203,33 @@
         var timerSeconds = MAX_SECONDS;
         var masterCount = 0;
         var amateurCount = 0;
-        var beginnerCount = 0;        
+        var beginnerCount = 0;
+        
+        let startButton = { x: 300, y: 500, width: 120, height: 60, color: 'red' };
+        let fullscreenButton = { x: 620, y: 500, width: 60, height: 60, color: 'yellow' };
+
+        let upButton = { x: 120, y: 420, width: 60, height: 60, color: 'blue' };
+        let downButton = { x: 120, y: 500, width: 60, height: 60, color: 'blue' };
+        let leftButton = { x: 30, y: 500, width: 60, height: 60, color: 'blue' };
+        let rightButton = { x: 210, y: 500, width: 60, height: 60, color: 'blue' };
+        
+        let passwordArray = []
+        for (var i = 0; i < PIN.length; i++) {
+            passwordArray.push(PIN.charAt(i))
+        }
+
+        var showPin = true
+        let pinButtons = []
+        let pinRandomized = false
+        let lastPinSequence = []
+
+        checkPassword = function(pressedPin) {
+            if (PIN === pressedPin) {
+                showPin = false
+            } else {
+                shufflePassword(true)
+            }
+        }
 
         generate = function() {
             for (var i = 0; i < 2; i++) {
@@ -257,6 +316,9 @@
                 start = false
                 game_over = false
                 refreshCalled = false
+                showPin = true
+                pinRandomized = false
+
                 lives = LIVES_COUNT
                 startTime = 0
                 timerSeconds = MAX_SECONDS
@@ -267,12 +329,8 @@
                 prize3 = new Prize(3);
                 allEnemies = []
 
-                console.log("REFRESH");
-
                 generate()
-
-                //location.reload()
-            }, 2000);
+            }, REFRESH_TIME_SECONDS * 1000);
         }
         document.addEventListener("keydown", function(e) {
             if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
@@ -289,9 +347,25 @@
                 122: 'fullscreen'
             };
 
-            //console.log("pressed key", e.keyCode);
+            passwordArray.forEach(num => {
+                let keyCode = num.charCodeAt(0)
+
+                allowedKeys[keyCode] = num
+            })
+            
             player.handleInput(allowedKeys[e.keyCode]);
         });
+
+        function passwordTitle() {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "Middle";
+            ctx.lineWidth = 2;
+            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            ctx.fillStyle = '#ffd456';//'#FFD700';
+            ctx.fillText('Ievadi paroli', 353.5, 370);
+            // ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            // ctx.fillText(currentInputValue, 707/2, 440);
+        }
         
         function startupTitle() {
             ctx.textAlign = "center";
@@ -301,14 +375,14 @@
             ctx.fillStyle = '#ffd456';//'#FFD700';
             ctx.fillText('Palīdzi večukam ', 353.5, 200.65);
             ctx.fillText('uzpildīt autiņu', 353.5, 285.65);
-            ctx.font = 'bold 30px Trebuchet MS, sans-serif';
-            ctx.strokeStyle = '#000000';
+            // ctx.font = 'bold 30px Trebuchet MS, sans-serif';
+            // ctx.strokeStyle = '#000000';
             // ctx.strokeText('Palīdzi večukam tikt pēc degvielas', 353.5, 166.65);
             // ctx.strokeText('un atnest uz sākuma punktu', 353.5, 210.65);
-            ctx.lineWidth = 3;
-            ctx.font = 'bold 40px Trebuchet MS, sans-serif';
-            ctx.fillText('Spied ENTER, lai sāktu', 707/2, 420.3);
-            ctx.font = 'bold 50px Trebuchet MS, sans-serif';
+            // ctx.lineWidth = 3;
+            // ctx.font = 'bold 40px Trebuchet MS, sans-serif';
+            // ctx.fillText('Spied ENTER, lai sāktu', 707/2, 420.3);
+            // ctx.font = 'bold 50px Trebuchet MS, sans-serif';
             // ctx.strokeText('Spied ENTER, lai sāktu', 707/2, 360.3);
         }
 
@@ -397,21 +471,6 @@
             };
         })();
 
-        // Buttons
-
-        // let upButton = { x: 30, y: 500, width: 60, height: 60, color: 'blue' };
-        // let downButton = { x: 120, y: 500, width: 60, height: 60, color: 'blue' };
-        // let leftButton = { x: 210, y: 500, width: 60, height: 60, color: 'blue' };
-        // let rightButton = { x: 300, y: 500, width: 60, height: 60, color: 'blue' };
-        // let startButton = { x: 390, y: 500, width: 60, height: 60, color: 'red' };
-
-        let startButton = { x: 300, y: 500, width: 60, height: 60, color: 'red' };
-        let upButton = { x: 120, y: 420, width: 60, height: 60, color: 'blue' };
-        let downButton = { x: 120, y: 500, width: 60, height: 60, color: 'blue' };
-        let leftButton = { x: 30, y: 500, width: 60, height: 60, color: 'blue' };
-        let rightButton = { x: 210, y: 500, width: 60, height: 60, color: 'blue' };
-        let fullscreenButton = { x: 640, y: 520, width: 40, height: 40, color: 'yellow' };
-
         // ENGINE ===========================================>
 
         var Engine = function(global) {
@@ -425,17 +484,50 @@
         canvas.display = "block";
         doc.body.appendChild(canvas);
 
-        function drawButton(button) {
+        function drawPassword() {
+            pinButtons = []
+            let firstPinBtnPos = PIN_BTN_FIRST_POS_X
+            
+            PIN_ARRAY.forEach((pin, index) => {
+                const button = {
+                    x: firstPinBtnPos,
+                    y: 450,
+                    width: PIN_BTN_SCALE,
+                    height: PIN_BTN_SCALE,
+                    color: PIN_BTN_COLORS[index],
+                    pin
+                }
+                
+                drawButton(button, { text: pin })
+                pinButtons.push(button)
+
+                firstPinBtnPos += 90
+            })
+        }
+
+        function drawButton(button, attr = {}) {
             ctx.fillStyle = button.color;
             ctx.fillRect(button.x, button.y, button.width, button.height);
+
+            if (attr.text) {
+                let size = attr.size || 20
+                let color = attr.color || '#ffd456'
+
+                ctx.font = `bold ${size}px Trebuchet MS, sans-serif`;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2;
+                ctx.fillText(attr.text, button.x + (button.width / 2), button.y + (button.height / 1.6));
+            }
         }
 
         function drawLivesText() {
+            ctx.fillStyle = '#ffd456'
             ctx.font = "50px Arial";
             ctx.fillText(lives, 50, 110);
         }
 
         function drawTimerText() {
+            ctx.fillStyle = '#ffd456'
             ctx.font = "50px Arial";
             ctx.fillText(timerSeconds, 655, 110);
         }
@@ -461,31 +553,38 @@
                 touchY >= button.y && touchY <= button.y + button.height;
         }
 
-        canvas.addEventListener('touchstart', (e) => {
+        canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect()
 
-            const touch = e.touches[0];
-            // const touchX = touch.clientX - canvas.offsetLeft;
-            // const touchY = touch.clientY - canvas.offsetTop;
-
-            const touchX = touch.clientX - rect.left;
-            const touchY = touch.clientY - rect.top;
-
-            console.log("btn touch");
+            const touchX = e.clientX - rect.left;
+            const touchY = e.clientY - rect.top;
 
             // Check if any of the buttons are pressed
-            if (isButtonPressed(upButton, touchX, touchY)) {
-                player.handleInput("up");
-            } else if (isButtonPressed(downButton, touchX, touchY)) {
-                player.handleInput("down");
-            } else if (isButtonPressed(leftButton, touchX, touchY)) {
-                player.handleInput("left");
-            } else if (isButtonPressed(rightButton, touchX, touchY)) {
-                player.handleInput("right");
-            } else if (isButtonPressed(startButton, touchX, touchY)) {
-                player.handleInput("enter", true);
-            } else if (isButtonPressed(fullscreenButton, touchX, touchY)) {
+
+            if (isButtonPressed(fullscreenButton, touchX, touchY))
                 player.handleInput("fullscreen");
+
+            if (showPin) {
+                const pressedPasswordButton = pinButtons.find(btn => isButtonPressed(btn, touchX, touchY))
+                if (pressedPasswordButton)
+                    player.handleInput(pressedPasswordButton.pin)
+
+            } else {
+                if (start) {
+                    if (isButtonPressed(upButton, touchX, touchY)) {
+                        player.handleInput("up");
+                    } else if (isButtonPressed(downButton, touchX, touchY)) {
+                        player.handleInput("down");
+                    } else if (isButtonPressed(leftButton, touchX, touchY)) {
+                        player.handleInput("left");
+                    } else if (isButtonPressed(rightButton, touchX, touchY)) {
+                        player.handleInput("right");
+                    }
+                } else {
+                    if (isButtonPressed(startButton, touchX, touchY)) {
+                        player.handleInput("enter", true);
+                    }
+                }
             }
         });
 
@@ -584,33 +683,54 @@
                     }
                 }
             } else {
-                startupTitle();
+                if (showPin) {
+                    passwordTitle();
+                    startupTitle();
+                } else {
+                    startupTitle();
+                }
             }
         }
         function renderEntities() {                
             allEnemies.forEach(function(enemy) {
                 enemy.render();
-            });
-            if (start === true) {
-                prize.render();
-                prize2.render();
-                prize3.render();                
-                player.render();
-                drawLivesText();
-                drawTimerText();
-                drawButton(upButton);
-                drawButton(downButton);
-                drawButton(leftButton);
-                drawButton(rightButton);
-            }
-            else {
+            });            
+            
+            if (showPin) {
+                if (!pinRandomized) {
+                    shufflePassword(PIN_ARRAY)
+                }
+
                 drawMasterText();
                 drawAmauterText();
                 drawBeginnerText();
-                drawButton(startButton);
+
+                drawPassword();
+            } else {
+                if (start === true) {
+                    prize.render();
+                    prize2.render();
+                    prize3.render();                
+                    player.render();
+
+                    drawLivesText();
+                    drawTimerText();
+
+                    drawButton(upButton, { text: "↑", size: 40 });
+                    drawButton(downButton, { text: "↓", size: 40 });
+                    drawButton(leftButton, { text: "←", size: 40 });
+                    drawButton(rightButton, { text: "→", size: 40 });
+                } else {
+                    drawMasterText();
+                    drawAmauterText();
+                    drawBeginnerText();
+                    drawButton(startButton, { text: "Sākt" });
+                }
             }
 
-            drawButton(fullscreenButton);               
+            if (window.innerHeight != screen.height) {
+                drawButton(fullscreenButton, { text: "⛶", size: 30, color: "black" });
+            }
         }
 
         Resources.load([
